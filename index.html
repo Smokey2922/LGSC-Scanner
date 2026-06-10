@@ -1,397 +1,726 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LGSC - File Scanner</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LGSC Scanner — Anti-Cheat Detection Tool</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
 
-        :root {
-            --primary: #B464FF;
-            --secondary: #00BEFF;
-            --accent: #32DCC8;
-            --dark-bg: #0A0C14;
-            --text: #D7E1FF;
-        }
+  :root {
+    --bg:       #07050F;
+    --bg2:      #0D0A1A;
+    --bg3:      #130F24;
+    --accent:   #7B2FFF;
+    --accent2:  #9B4FFF;
+    --glow:     rgba(123,47,255,0.35);
+    --text:     #E8E0FF;
+    --subtext:  #7060A0;
+    --green:    #00E5A0;
+    --red:      #FF4466;
+    --border:   rgba(123,47,255,0.2);
+  }
 
-        html[lang="en"] {
-            direction: ltr;
-        }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        body {
-            font-family: 'Courier New', monospace;
-            background-color: var(--dark-bg);
-            color: var(--text);
-            overflow-x: hidden;
-            position: relative;
-        }
+  html { scroll-behavior: smooth; }
 
-        /* Matrix Background */
-        canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-        }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    overflow-x: hidden;
+  }
 
-        /* Content */
-        .content {
-            position: relative;
-            z-index: 10;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: center;
-            padding: 40px;
-        }
+  /* ── NOISE OVERLAY ── */
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.4;
+  }
 
-        /* Header */
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            max-width: 1200px;
-            padding: 20px 40px;
-        }
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 48px; height: 64px;
+    background: rgba(7,5,15,0.85);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo {
+    display: flex; align-items: center; gap: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700; font-size: 18px; color: var(--text);
+    text-decoration: none;
+  }
+  .nav-logo img { width: 28px; height: 28px; }
+  .nav-logo span { color: var(--accent); }
+  .nav-links { display: flex; gap: 32px; }
+  .nav-links a {
+    color: var(--subtext); text-decoration: none;
+    font-size: 14px; font-weight: 500;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--text); }
+  .nav-cta {
+    background: var(--accent); color: #fff;
+    padding: 9px 22px; border-radius: 8px;
+    text-decoration: none; font-weight: 600; font-size: 14px;
+    transition: background 0.2s, box-shadow 0.2s;
+    box-shadow: 0 0 20px var(--glow);
+  }
+  .nav-cta:hover { background: var(--accent2); box-shadow: 0 0 32px var(--glow); }
 
-        .logo {
-            font-size: 36px;
-            font-weight: bold;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            letter-spacing: 2px;
-        }
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; padding: 100px 24px 60px;
+    position: relative; overflow: hidden;
+  }
+  .hero-glow {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -60%);
+    width: 700px; height: 700px;
+    background: radial-gradient(circle, rgba(123,47,255,0.18) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(123,47,255,0.12);
+    border: 1px solid rgba(123,47,255,0.3);
+    border-radius: 100px; padding: 6px 16px;
+    font-size: 13px; color: var(--accent2);
+    font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 28px;
+    animation: fadeUp 0.6s ease both;
+  }
+  .hero-badge::before { content: "●"; font-size: 8px; color: var(--green); }
+  h1 {
+    font-size: clamp(42px, 7vw, 80px);
+    font-weight: 700; line-height: 1.05;
+    letter-spacing: -2px;
+    animation: fadeUp 0.6s 0.1s ease both;
+  }
+  h1 span { color: var(--accent); }
+  .hero-sub {
+    max-width: 560px; margin: 20px auto 0;
+    color: var(--subtext); font-size: 18px; line-height: 1.6;
+    animation: fadeUp 0.6s 0.2s ease both;
+  }
+  .hero-buttons {
+    display: flex; gap: 14px; margin-top: 36px;
+    animation: fadeUp 0.6s 0.3s ease both;
+  }
+  .btn-primary {
+    background: var(--accent); color: #fff;
+    padding: 14px 32px; border-radius: 10px;
+    text-decoration: none; font-weight: 700; font-size: 15px;
+    box-shadow: 0 0 32px var(--glow);
+    transition: all 0.2s;
+  }
+  .btn-primary:hover { background: var(--accent2); transform: translateY(-2px); box-shadow: 0 0 48px var(--glow); }
+  .btn-secondary {
+    background: rgba(123,47,255,0.1);
+    border: 1px solid var(--border);
+    color: var(--text); padding: 14px 32px;
+    border-radius: 10px; text-decoration: none;
+    font-weight: 600; font-size: 15px;
+    transition: all 0.2s;
+  }
+  .btn-secondary:hover { background: rgba(123,47,255,0.2); transform: translateY(-2px); }
 
-        .lang-toggle {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border: none;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 18px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            box-shadow: 0 0 15px rgba(180, 100, 255, 0.4);
-        }
+  /* ── VIDEO/SCREENSHOT BLOCK ── */
+  .hero-media {
+    margin-top: 56px; width: 100%; max-width: 900px;
+    border-radius: 16px; overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: 0 0 80px rgba(123,47,255,0.25), 0 40px 80px rgba(0,0,0,0.6);
+    animation: fadeUp 0.6s 0.4s ease both;
+    position: relative;
+  }
+  .hero-media video,
+  .hero-media img { width: 100%; display: block; }
+  .media-placeholder {
+    background: var(--bg3);
+    aspect-ratio: 16/9;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 12px; color: var(--subtext);
+    font-family: 'JetBrains Mono', monospace; font-size: 14px;
+  }
+  .media-placeholder .icon { font-size: 40px; opacity: 0.4; }
 
-        .lang-toggle:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 0 25px rgba(0, 190, 255, 0.6);
-        }
+  /* ── STATS BAR ── */
+  .stats {
+    display: flex; justify-content: center; gap: 60px;
+    padding: 40px 24px;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+  }
+  .stat { text-align: center; }
+  .stat-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 32px; font-weight: 700; color: var(--accent);
+  }
+  .stat-label { font-size: 13px; color: var(--subtext); margin-top: 4px; }
 
-        /* Main Section */
-        .main {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 40px;
-            text-align: center;
-            flex: 1;
-        }
+  /* ── SECTIONS ── */
+  section { padding: 100px 24px; max-width: 1100px; margin: 0 auto; }
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; color: var(--accent);
+    letter-spacing: 3px; text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  h2 {
+    font-size: clamp(28px, 4vw, 48px);
+    font-weight: 700; letter-spacing: -1px;
+    line-height: 1.1; margin-bottom: 16px;
+  }
+  h2 span { color: var(--accent); }
+  .section-sub {
+    color: var(--subtext); font-size: 17px; max-width: 520px; line-height: 1.6;
+  }
 
-        h1 {
-            font-size: 80px;
-            font-weight: bold;
-            background: linear-gradient(135deg, var(--primary), var(--secondary), var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 10px;
-            animation: glow 2s ease-in-out infinite;
-        }
+  /* ── FEATURES GRID ── */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px; margin-top: 56px;
+  }
+  .feature-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px; padding: 28px;
+    transition: all 0.3s;
+    position: relative; overflow: hidden;
+  }
+  .feature-card::before {
+    content: "";
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .feature-card:hover { border-color: rgba(123,47,255,0.5); transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+  .feature-card:hover::before { opacity: 1; }
+  .feature-icon {
+    width: 48px; height: 48px;
+    background: rgba(123,47,255,0.15);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; margin-bottom: 18px;
+  }
+  .feature-title { font-size: 17px; font-weight: 600; margin-bottom: 8px; }
+  .feature-desc { color: var(--subtext); font-size: 14px; line-height: 1.6; }
+  .feature-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+  .tag {
+    background: rgba(123,47,255,0.1);
+    border: 1px solid rgba(123,47,255,0.2);
+    border-radius: 6px; padding: 3px 10px;
+    font-size: 11px; color: var(--accent2);
+    font-family: 'JetBrains Mono', monospace;
+  }
 
-        @keyframes glow {
-            0%, 100% {
-                text-shadow: 0 0 10px rgba(180, 100, 255, 0.3);
-            }
-            50% {
-                text-shadow: 0 0 20px rgba(0, 190, 255, 0.6);
-            }
-        }
+  /* ── HOW IT WORKS ── */
+  .steps { margin-top: 56px; display: flex; flex-direction: column; gap: 24px; }
+  .step {
+    display: flex; gap: 24px; align-items: flex-start;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 16px; padding: 28px;
+    transition: all 0.3s;
+  }
+  .step:hover { border-color: rgba(123,47,255,0.4); }
+  .step-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 28px; font-weight: 700; color: var(--accent);
+    opacity: 0.4; flex-shrink: 0; width: 40px;
+  }
+  .step-content h3 { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
+  .step-content p { color: var(--subtext); font-size: 14px; line-height: 1.6; }
 
-        .buttons {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
+  /* ── SCREENSHOTS ── */
+  .screenshots-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 20px; margin-top: 56px;
+  }
+  .screenshot-item {
+    border-radius: 12px; overflow: hidden;
+    border: 1px solid var(--border);
+    transition: all 0.3s;
+  }
+  .screenshot-item:hover { border-color: rgba(123,47,255,0.5); transform: scale(1.01); }
+  .screenshot-item img { width: 100%; display: block; }
+  .screenshot-placeholder {
+    background: var(--bg3); aspect-ratio: 16/10;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 8px; color: var(--subtext);
+    font-size: 13px; font-family: 'JetBrains Mono', monospace;
+  }
+  .screenshot-caption {
+    background: var(--bg2); padding: 12px 16px;
+    font-size: 13px; color: var(--subtext);
+    border-top: 1px solid var(--border);
+  }
 
-        .btn {
-            padding: 16px 40px;
-            font-size: 18px;
-            font-weight: bold;
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-family: 'Courier New', monospace;
-        }
+  /* ── PRICING ── */
+  .pricing-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px; margin-top: 56px;
+  }
+  .pricing-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 20px; padding: 36px; text-align: center;
+    position: relative; transition: all 0.3s;
+  }
+  .pricing-card.featured {
+    border-color: var(--accent);
+    box-shadow: 0 0 40px var(--glow);
+  }
+  .pricing-card.featured::before {
+    content: "Most Popular";
+    position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+    background: var(--accent); color: #fff;
+    padding: 4px 16px; border-radius: 100px;
+    font-size: 12px; font-weight: 700;
+  }
+  .pricing-card:hover:not(.featured) { border-color: rgba(123,47,255,0.4); transform: translateY(-4px); }
+  .pricing-card.featured:hover { transform: translateY(-4px); }
+  .pricing-name { font-size: 14px; color: var(--subtext); font-weight: 500; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 2px; }
+  .pricing-price {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 48px; font-weight: 700; color: var(--text);
+  }
+  .pricing-price sup { font-size: 22px; color: var(--subtext); vertical-align: top; margin-top: 10px; }
+  .pricing-period { font-size: 13px; color: var(--subtext); margin-bottom: 28px; }
+  .pricing-features { list-style: none; text-align: left; margin-bottom: 28px; }
+  .pricing-features li {
+    padding: 10px 0; font-size: 14px; color: var(--subtext);
+    border-bottom: 1px solid rgba(123,47,255,0.08);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .pricing-features li::before { content: "✓"; color: var(--green); font-weight: 700; flex-shrink: 0; }
+  .pricing-features li.no::before { content: "✗"; color: var(--red); }
+  .pricing-features li.no { opacity: 0.5; }
+  .btn-pricing {
+    display: block; width: 100%;
+    padding: 14px; border-radius: 10px;
+    text-decoration: none; font-weight: 700; font-size: 15px;
+    transition: all 0.2s; text-align: center;
+  }
+  .btn-pricing.primary { background: var(--accent); color: #fff; box-shadow: 0 0 24px var(--glow); }
+  .btn-pricing.primary:hover { background: var(--accent2); }
+  .btn-pricing.secondary { background: rgba(123,47,255,0.1); border: 1px solid var(--border); color: var(--text); }
+  .btn-pricing.secondary:hover { background: rgba(123,47,255,0.2); }
 
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            box-shadow: 0 0 20px rgba(180, 100, 255, 0.4);
-        }
+  /* ── FAQ ── */
+  .faq { margin-top: 56px; display: flex; flex-direction: column; gap: 12px; }
+  .faq-item {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden;
+  }
+  .faq-q {
+    padding: 20px 24px; font-weight: 600; font-size: 15px;
+    cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+    user-select: none; transition: background 0.2s;
+  }
+  .faq-q:hover { background: rgba(123,47,255,0.05); }
+  .faq-q .arrow { color: var(--accent); transition: transform 0.3s; }
+  .faq-q.open .arrow { transform: rotate(90deg); }
+  .faq-a {
+    padding: 0 24px; max-height: 0; overflow: hidden;
+    transition: all 0.3s; color: var(--subtext); font-size: 14px; line-height: 1.7;
+  }
+  .faq-a.open { max-height: 200px; padding: 0 24px 20px; }
 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 0 35px rgba(0, 190, 255, 0.7);
-        }
+  /* ── DISCORD CTA ── */
+  .discord-cta {
+    margin: 0 24px 80px;
+    background: linear-gradient(135deg, #1a0a3d 0%, #0a0a20 50%, #1a0a3d 100%);
+    border: 1px solid var(--border);
+    border-radius: 24px; padding: 72px 48px;
+    text-align: center; position: relative; overflow: hidden;
+    max-width: 1100px; margin-left: auto; margin-right: auto;
+  }
+  .discord-cta::before {
+    content: "";
+    position: absolute; top: -50%; left: 50%; transform: translateX(-50%);
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(123,47,255,0.2) 0%, transparent 70%);
+  }
+  .discord-cta h2 { margin-bottom: 12px; }
+  .discord-cta p { color: var(--subtext); margin-bottom: 32px; font-size: 16px; }
+  .btn-discord {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: #5865F2; color: #fff;
+    padding: 14px 32px; border-radius: 10px;
+    text-decoration: none; font-weight: 700; font-size: 15px;
+    transition: all 0.2s;
+  }
+  .btn-discord:hover { background: #4752C4; transform: translateY(-2px); }
 
-        .btn-secondary {
-            background: transparent;
-            color: var(--secondary);
-            border: 1.5px solid var(--secondary);
-            box-shadow: inset 0 0 15px rgba(0, 190, 255, 0.1);
-        }
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 48px;
+    display: flex; justify-content: space-between; align-items: center;
+    color: var(--subtext); font-size: 13px;
+  }
+  footer a { color: var(--subtext); text-decoration: none; }
+  footer a:hover { color: var(--text); }
 
-        .btn-secondary:hover {
-            background: rgba(0, 190, 255, 0.1);
-            transform: translateY(-2px);
-            box-shadow: inset 0 0 20px rgba(0, 190, 255, 0.2), 0 0 25px rgba(0, 190, 255, 0.4);
-        }
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
 
-        /* Specs Section */
-        .specs {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
-            width: 100%;
-            max-width: 1000px;
-            margin-top: 50px;
-        }
+  /* scroll reveal */
+  .reveal { opacity: 0; transform: translateY(30px); transition: all 0.6s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
 
-        .specs-left {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .spec-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 18px;
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(180, 100, 255, 0.2);
-            min-height: 32px;
-        }
-
-        .spec-item::before {
-            content: '✓';
-            color: var(--accent);
-            font-weight: bold;
-            font-size: 22px;
-            min-width: 22px;
-        }
-
-        .specs-right {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, rgba(180, 100, 255, 0.1), rgba(0, 190, 255, 0.1));
-            border: 1.5px solid rgba(0, 190, 255, 0.3);
-            border-radius: 18px;
-            padding: 30px;
-            min-height: 180px;
-            animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% {
-                transform: translateY(0);
-            }
-            50% {
-                transform: translateY(-10px);
-            }
-        }
-
-        .specs-right-icon {
-            font-size: 120px;
-        }
-
-        /* Footer */
-        footer {
-            width: 100%;
-            text-align: center;
-            padding: 5px 20px;
-            border-top: 1px solid rgba(180, 100, 255, 0.2);
-        }
-
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 32px;
-            }
-
-            .specs {
-                grid-template-columns: 1fr;
-                gap: 15px;
-            }
-
-            .buttons {
-                flex-direction: column;
-                width: 100%;
-            }
-
-            .btn {
-                width: 100%;
-            }
-        }
-    </style>
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    nav { padding: 0 20px; }
+    .nav-links { display: none; }
+    .hero-buttons { flex-direction: column; align-items: center; }
+    .screenshots-grid { grid-template-columns: 1fr; }
+    .stats { flex-wrap: wrap; gap: 32px; }
+    footer { flex-direction: column; gap: 16px; text-align: center; }
+  }
+</style>
 </head>
 <body>
-    <!-- Matrix Canvas -->
-    <canvas id="matrixCanvas"></canvas>
 
-    <!-- Content -->
-    <div class="content">
-        <!-- Header -->
-        <header>
-            <div class="logo">⚡ LGSC</div>
-            <button class="lang-toggle" id="langToggle">English</button>
-        </header>
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">
+    <!-- תחליף ב: <img src="your-logo.png" alt="LGSC"> -->
+    <span style="font-size:22px">⚡</span>
+    LGSC <span>Scanner</span>
+  </a>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#how">How It Works</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#faq">FAQ</a>
+  </div>
+  <a href="https://discord.gg/YOUR_INVITE" class="nav-cta">💬 Get Access</a>
+</nav>
 
-        <!-- Main -->
-        <div class="main">
-            <h1 data-he="File Scanner" data-en="File Scanner">File Scanner</h1>
-            
-            <div class="buttons">
-                <button class="btn btn-primary" id="downloadBtn" data-he="הורד עכשיו" data-en="Download Now">Download Now</button>
-                <button class="btn btn-secondary" id="githubBtn" data-he="GitHub" data-en="GitHub">GitHub</button>
-                <button class="btn btn-secondary" id="discordBtn" data-he="Discord" data-en="Discord">Discord</button>
-            </div>
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-badge">v1.0 — Now Available</div>
+  <h1>LGSC<br><span>File Scanner</span></h1>
+  <p class="hero-sub">
+    LGSC Scanner scans the Windows registry, BAM, Prefetch and more.
+  </p>
+  <div class="hero-buttons">
+    <a href="https://discord.gg/YOUR_INVITE" class="btn-primary">💬 Join Discord</a>
+  </div>
 
-            <!-- Specs -->
-            <div class="specs">
-                <div class="specs-left">
-                    <div class="spec-item" data-he="תמיכה ב-Windows 10/11" data-en="Support for Windows 10/11">Support for Windows 10/11</div>
+  <!-- HERO MEDIA — החלף את ה-placeholder בסרטון או תמונה אמיתית -->
+  <div class="hero-media">
+    <video autoplay muted loop playsinline>
+      <source src="demo.mp4" type="video/mp4">
+    </video>
+  </div>
+</section>
 
-                </div>
-                <div class="specs-right">
-                    <div class="specs-right-icon">💻</div>
-                </div>
-            </div>
-        </div>
+<!-- STATS -->
+<div class="stats">
+  <div class="stat">
+    <div class="stat-num">6+</div>
+    <div class="stat-label">Detection Sources</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">&lt;5s</div>
+    <div class="stat-label">Full Scan Time</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">100%</div>
+    <div class="stat-label">HWID Locked</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">Discord</div>
+    <div class="stat-label">2FA Verification</div>
+  </div>
+</div>
 
-        <!-- Footer -->
-        <footer></footer>
+<!-- FEATURES -->
+<section id="features">
+  <div class="reveal">
+    <p class="section-label">What it detects</p>
+    <h2>Forensic-level<br><span>cheat detection</span></h2>
+    <p class="section-sub">Every scan checks 6 different Windows data sources — leaving cheaters nowhere to hide.</p>
+  </div>
+  <div class="features-grid reveal">
+    <div class="feature-card">
+      <div class="feature-icon">🗝️</div>
+      <div class="feature-title">Registry Scan</div>
+      <div class="feature-desc">Scans UserAssist and MUICache keys — every program ever launched leaves a trace here, even after deletion.</div>
+      <div class="feature-tags"><span class="tag">UserAssist</span><span class="tag">MUICache</span><span class="tag">RunKeys</span></div>
     </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <div class="feature-title">BAM / DAM</div>
+      <div class="feature-desc">Background Activity Monitor — logs every executable that ran, with exact timestamps. Can't be cleared without admin access.</div>
+      <div class="feature-tags"><span class="tag">BAM</span><span class="tag">Timestamps</span></div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📁</div>
+      <div class="feature-title">Prefetch Files</div>
+      <div class="feature-desc">Windows Prefetch stores execution history for every program. LGSC reads and cross-references these files automatically.</div>
+      <div class="feature-tags"><span class="tag">Prefetch</span><span class="tag">.PF Files</span></div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔍</div>
+      <div class="feature-title">Smart Filtering</div>
+      <div class="feature-desc">Filter by date, source, or existence status. Search across all results instantly. Export to CSV with one click.</div>
+      <div class="feature-tags"><span class="tag">Filter</span><span class="tag">Search</span><span class="tag">Export</span></div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔒</div>
+      <div class="feature-title">HWID + Discord Auth</div>
+      <div class="feature-desc">Every license is bound to a hardware ID. Discord 2FA verification ensures only the real owner can activate.</div>
+      <div class="feature-tags"><span class="tag">HWID Lock</span><span class="tag">Discord OTP</span></div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <div class="feature-title">Admin Dashboard</div>
+      <div class="feature-desc">Full admin panel to manage licenses, view user activity, send messages, and monitor who's running what — in real time.</div>
+      <div class="feature-tags"><span class="tag">Licenses</span><span class="tag">Activity</span><span class="tag">Messaging</span></div>
+    </div>
+  </div>
+</section>
 
-    <script>
-        // Language Toggle
-        let currentLang = 'en';
-        const langToggle = document.getElementById('langToggle');
-        
-        langToggle.addEventListener('click', () => {
-            currentLang = currentLang === 'en' ? 'he' : 'en';
-            document.documentElement.lang = currentLang;
-            document.documentElement.dir = currentLang === 'he' ? 'rtl' : 'ltr';
-            
-            document.querySelectorAll('[data-he][data-en]').forEach(el => {
-                const text = el.getAttribute(`data-${currentLang}`);
-                if (text) {
-                    el.textContent = text;
-                }
-            });
-            
-            langToggle.textContent = currentLang === 'en' ? 'עברית' : 'English';
-        });
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="reveal">
+    <p class="section-label">The process</p>
+    <h2>From download<br>to <span>evidence</span></h2>
+  </div>
+  <div class="steps reveal">
+    <div class="step">
+      <div class="step-num">01</div>
+      <div class="step-content">
+        <h3>Download & Verify</h3>
+        <p>Download the scanner, enter your license key. Verify your identity via Discord OTP — the whole process takes under 30 seconds.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <div class="step-content">
+        <h3>Run the Scan</h3>
+        <p>Hit Scan. LGSC simultaneously checks Registry, BAM, Prefetch, MUICache, Run Keys, and Recent files — all in under 5 seconds.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <div class="step-content">
+        <h3>Review Results</h3>
+        <p>Every suspicious file is flagged with source, timestamp, and existence status. Filter, search, and export the results as evidence.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">04</div>
+      <div class="step-content">
+        <h3>Take Action</h3>
+        <p>Share the exported report, ban the player, or clear their record. You have the receipts — they can't argue with the registry.</p>
+      </div>
+    </div>
+  </div>
+</section>
 
-        // Button Handlers
-        document.getElementById('downloadBtn').addEventListener('click', () => {
-            window.location.href = 'https://github.com/Smokey2922/LGSC_SC/releases/download/v1.0/Scanner.exe';
-        });
+<!-- SCREENSHOTS -->
+<section>
+  <div class="reveal">
+    <p class="section-label">See it in action</p>
+    <h2>Clean UI.<br><span>Powerful results.</span></h2>
+  </div>
+  <div class="screenshots-grid reveal">
+    <!--
+      להוסיף תמונות:
+      מחק את ה-div.screenshot-placeholder ושים:
+      <img src="screenshot1.png" alt="Main scan view">
+    -->
+    <div class="screenshot-item">
+      <img src="screenshot1.png" alt="Main scan results view">
+      <div class="screenshot-caption">Main scan results view</div>
+    </div>
+    <div class="screenshot-item">
+      <div class="screenshot-placeholder">
+        <span style="font-size:32px;opacity:0.3">🖼</span>
+        Replace with screenshot<br>
+        <code style="font-size:11px">&lt;img src="screenshot2.png"&gt;</code>
+      </div>
+      <div class="screenshot-caption">Admin dashboard</div>
+    </div>
+    <div class="screenshot-item">
+      <div class="screenshot-placeholder">
+        <span style="font-size:32px;opacity:0.3">🖼</span>
+        Replace with screenshot<br>
+        <code style="font-size:11px">&lt;img src="screenshot3.png"&gt;</code>
+      </div>
+      <div class="screenshot-caption">Activation flow</div>
+    </div>
+    <div class="screenshot-item">
+      <div class="screenshot-placeholder">
+        <span style="font-size:32px;opacity:0.3">🖼</span>
+        Replace with screenshot<br>
+        <code style="font-size:11px">&lt;img src="screenshot4.png"&gt;</code>
+      </div>
+      <div class="screenshot-caption">Filter & search</div>
+    </div>
+  </div>
+</section>
 
-        document.getElementById('githubBtn').addEventListener('click', () => {
-            window.open('https://github.com/eitan743583/LGSC_SC', '_blank');
-        });
+<!-- PRICING -->
+<section id="pricing">
+  <div class="reveal" style="text-align:center">
+    <p class="section-label">Pricing</p>
+    <h2>Simple,<br><span>transparent pricing</span></h2>
+    <p class="section-sub" style="margin:0 auto">Pick what fits your community. No hidden fees.</p>
+  </div>
+  <div class="pricing-grid reveal">
+    <div class="pricing-card">
+      <div class="pricing-name">Trial</div>
+      <div class="pricing-price"><sup>$</sup>0</div>
+      <div class="pricing-period">Free forever</div>
+      <ul class="pricing-features">
+        <li>1 scan per day</li>
+        <li>Registry + BAM only</li>
+        <li>Basic filters</li>
+        <li class="no">Export to CSV</li>
+        <li class="no">Admin dashboard</li>
+        <li class="no">Priority support</li>
+      </ul>
+      <a href="https://discord.gg/YOUR_INVITE" class="btn-pricing secondary">Join Discord →</a>
+    </div>
+    <div class="pricing-card featured">
+      <div class="pricing-name">Pro</div>
+      <div class="pricing-price"><sup>$</sup>10</div>
+      <div class="pricing-period">per month</div>
+      <ul class="pricing-features">
+        <li>Unlimited scans</li>
+        <li>All 6 detection sources</li>
+        <li>Advanced filters + search</li>
+        <li>Export to CSV</li>
+        <li>Admin dashboard access</li>
+        <li>Discord support</li>
+      </ul>
+      <a href="https://discord.gg/YOUR_INVITE" class="btn-pricing primary">Get Pro →</a>
+    </div>
+    <div class="pricing-card">
+      <div class="pricing-name">Lifetime</div>
+      <div class="pricing-price"><sup>$</sup>35</div>
+      <div class="pricing-period">one-time payment</div>
+      <ul class="pricing-features">
+        <li>Everything in Pro</li>
+        <li>All future updates</li>
+        <li>Priority support</li>
+        <li>Early access to features</li>
+        <li>Admin dashboard access</li>
+        <li>Custom note per license</li>
+      </ul>
+      <a href="https://discord.gg/YOUR_INVITE" class="btn-pricing secondary">Get Lifetime →</a>
+    </div>
+  </div>
+</section>
 
-        document.getElementById('discordBtn').addEventListener('click', () => {
-            window.open('https://discord.gg/84R9as5pAW', '_blank');
-        });
+<!-- FAQ -->
+<section id="faq">
+  <div class="reveal" style="text-align:center">
+    <p class="section-label">Questions</p>
+    <h2>Frequently<br><span>asked</span></h2>
+  </div>
+  <div class="faq reveal">
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        What is a HWID and why is the license tied to it?
+        <span class="arrow">›</span>
+      </div>
+      <div class="faq-a">
+        HWID (Hardware ID) is a unique fingerprint of your PC — generated from your CPU, motherboard, and drives. Tying your license to it means only you can activate and use it, preventing sharing or reselling.
+      </div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        Can cheaters clear their traces before being scanned?
+        <span class="arrow">›</span>
+      </div>
+      <div class="faq-a">
+        BAM and some registry keys require admin rights to modify and persist across reboots, making them much harder to clear. LGSC also cross-references multiple sources, so clearing one rarely clears all.
+      </div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        How do I get a license after purchasing?
+        <span class="arrow">›</span>
+      </div>
+      <div class="faq-a">
+        After payment, join our Discord server and open a ticket. Your HWID gets added to the system within minutes, and you can activate immediately.
+      </div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        Does it work on Windows 11?
+        <span class="arrow">›</span>
+      </div>
+      <div class="faq-a">
+        Yes. LGSC Scanner is fully compatible with Windows 10 and Windows 11. Administrator privileges are required for full scan access.
+      </div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        What games / cheats does it detect?
+        <span class="arrow">›</span>
+      </div>
+      <div class="faq-a">
+        LGSC detects execution traces — not game-specific. If a cheat was ever launched on that PC, it will appear in at least one of the 6 scanned sources. It works for any game.
+      </div>
+    </div>
+  </div>
+</section>
 
-        // Matrix Effect
-        const canvas = document.getElementById('matrixCanvas');
-        const ctx = canvas.getContext('2d');
+<!-- DISCORD CTA -->
+<div class="discord-cta reveal">
+  <p class="section-label" style="text-align:center">Community</p>
+  <h2>Join the Discord.<br><span>Get your license.</span></h2>
+  <p>Ask questions, get support, and buy your license — all in one place.</p>
+  <a href="https://discord.gg/YOUR_INVITE" class="btn-discord">
+    <svg width="22" height="16" viewBox="0 0 71 55" fill="white"><path d="M60.1 4.9A58.6 58.6 0 0 0 45.5.7a41 41 0 0 0-1.8 3.7 54.2 54.2 0 0 0-16.3 0A39.5 39.5 0 0 0 25.6.7 58.5 58.5 0 0 0 11 4.9C1.6 18.8-1 32.4.3 45.8a59 59 0 0 0 18 9.1 43.4 43.4 0 0 0 3.8-6.1 38.3 38.3 0 0 1-6-2.9l1.5-1.1a42.2 42.2 0 0 0 36 0l1.5 1.1a38.4 38.4 0 0 1-6 2.9 43.4 43.4 0 0 0 3.8 6.1 58.8 58.8 0 0 0 18-9C72.2 30.2 68.4 16.7 60.1 4.9ZM23.7 37.7c-3.5 0-6.4-3.2-6.4-7.2s2.8-7.2 6.4-7.2 6.5 3.2 6.4 7.2c0 4-2.8 7.2-6.4 7.2Zm23.6 0c-3.5 0-6.4-3.2-6.4-7.2s2.8-7.2 6.4-7.2 6.5 3.2 6.4 7.2c0 4-2.8 7.2-6.4 7.2Z"/></svg>
+    Join Discord Server
+  </a>
+</div>
 
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+<!-- FOOTER -->
+<footer>
+  <div>© 2026 LGSC Scanner. All rights reserved.</div>
+  <div style="display:flex;gap:24px">
+    <a href="https://discord.gg/YOUR_INVITE">Discord</a>
+    <a href="YOUR_DOWNLOAD_LINK">Download</a>
+  </div>
+</footer>
 
-        const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
-        const fontSize = 14;
-        const columns = Math.floor(canvas.width / fontSize);
+<script>
+  // ── FAQ toggle ──
+  function toggleFaq(el) {
+    el.classList.toggle('open');
+    el.nextElementSibling.classList.toggle('open');
+  }
 
-        const drops = Array(columns).fill(0).map(() => Math.random() * canvas.height);
-
-        function drawMatrix() {
-            ctx.fillStyle = 'rgba(10, 12, 20, 0.1)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.fillStyle = 'rgba(0, 190, 255, 0.3)';
-            ctx.font = `${fontSize}px 'Courier New'`;
-
-            for (let i = 0; i < drops.length; i++) {
-                const char = chars[Math.floor(Math.random() * chars.length)];
-                ctx.fillText(char, i * fontSize, drops[i] * fontSize);
-
-                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-                    drops[i] = 0;
-                }
-                drops[i]++;
-            }
-        }
-
-        function animate() {
-            drawMatrix();
-            requestAnimationFrame(animate);
-        }
-
-        animate();
-
-        // Handle resize
-        window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        });
-
-        // Button ripple effect
-        document.querySelectorAll('.btn').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                const ripple = document.createElement('span');
-                ripple.style.position = 'absolute';
-                ripple.style.borderRadius = '50%';
-                ripple.style.background = 'rgba(255, 255, 255, 0.5)';
-                ripple.style.width = '10px';
-                ripple.style.height = '10px';
-                ripple.style.animation = 'ripple 0.6s ease-out';
-                this.appendChild(ripple);
-                setTimeout(() => ripple.remove(), 600);
-            });
-        });
-
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes ripple {
-                to {
-                    transform: scale(4);
-                    opacity: 0;
-                }
-            }
-        `;
-        document.head.appendChild(style);
-    </script>
+  // ── Scroll reveal ──
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
 </body>
 </html>
