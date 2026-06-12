@@ -61,17 +61,37 @@
   .nav-links a {
     color: var(--subtext); text-decoration: none;
     font-size: 14px; font-weight: 500;
-    transition: color 0.2s;
+    transition: color 0.3s, text-shadow 0.3s;
+    position: relative;
   }
-  .nav-links a:hover { color: var(--text); }
+  .nav-links a::after {
+    content: "";
+    position: absolute; bottom: -4px; left: 0; width: 0;
+    height: 2px; background: var(--accent);
+    transition: width 0.3s ease;
+  }
+  .nav-links a:hover { color: var(--text); text-shadow: 0 0 10px var(--accent); }
+  .nav-links a:hover::after { width: 100%; }
   .nav-cta {
     background: var(--accent); color: #fff;
     padding: 9px 22px; border-radius: 8px;
     text-decoration: none; font-weight: 600; font-size: 14px;
-    transition: background 0.2s, box-shadow 0.2s;
-    box-shadow: 0 0 20px var(--glow);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 0 20px var(--glow), 0 0 40px rgba(123,47,255,0.2);
+    position: relative; overflow: hidden;
   }
-  .nav-cta:hover { background: var(--accent2); box-shadow: 0 0 32px var(--glow); }
+  .nav-cta::before {
+    content: "";
+    position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+    background: var(--accent2);
+    transition: left 0.3s ease;
+    z-index: -1;
+  }
+  .nav-cta:hover {
+    background: var(--accent2);
+    box-shadow: 0 0 40px var(--glow), 0 0 80px rgba(123,47,255,0.3);
+    transform: translateY(-2px) scale(1.05);
+  }
 
   /* ── HERO ── */
   .hero {
@@ -85,8 +105,14 @@
     position: absolute; top: 50%; left: 50%;
     transform: translate(-50%, -60%);
     width: 700px; height: 700px;
-    background: radial-gradient(circle, rgba(123,47,255,0.18) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(123,47,255,0.25) 0%, transparent 70%);
     pointer-events: none;
+    animation: glowPulse 4s ease-in-out infinite;
+    filter: blur(40px);
+  }
+  @keyframes glowPulse {
+    0%, 100% { transform: translate(-50%, -60%) scale(1); opacity: 0.8; }
+    50% { transform: translate(-50%, -60%) scale(1.1); opacity: 1; }
   }
   .hero-badge {
     display: inline-flex; align-items: center; gap: 8px;
@@ -96,7 +122,12 @@
     font-size: 13px; color: var(--accent2);
     font-family: 'JetBrains Mono', monospace;
     margin-bottom: 28px;
-    animation: fadeUp 0.6s ease both;
+    animation: fadeUp 0.6s ease both, badgeGlow 2s ease-in-out infinite;
+    box-shadow: 0 0 15px rgba(123,47,255,0.3);
+  }
+  @keyframes badgeGlow {
+    0%, 100% { box-shadow: 0 0 15px rgba(123,47,255,0.3); }
+    50% { box-shadow: 0 0 25px rgba(123,47,255,0.6); }
   }
   .hero-badge::before { content: "●"; font-size: 8px; color: var(--green); }
   h1 {
@@ -104,6 +135,10 @@
     font-weight: 700; line-height: 1.05;
     letter-spacing: -2px;
     animation: fadeUp 0.6s 0.1s ease both;
+    background: linear-gradient(135deg, var(--text) 0%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
   h1 span { color: var(--accent); }
   .hero-sub {
@@ -119,19 +154,47 @@
     background: var(--accent); color: #fff;
     padding: 14px 32px; border-radius: 10px;
     text-decoration: none; font-weight: 700; font-size: 15px;
-    box-shadow: 0 0 32px var(--glow);
-    transition: all 0.2s;
+    box-shadow: 0 0 32px var(--glow), inset 0 0 20px rgba(255,255,255,0.1);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative; overflow: hidden;
   }
-  .btn-primary:hover { background: var(--accent2); transform: translateY(-2px); box-shadow: 0 0 48px var(--glow); }
+  .btn-primary::before {
+    content: "";
+    position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .btn-primary:hover {
+    background: var(--accent2);
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 0 60px var(--glow), 0 10px 40px rgba(123,47,255,0.4), inset 0 0 20px rgba(255,255,255,0.15);
+  }
+  .btn-primary:hover::before { opacity: 1; }
   .btn-secondary {
     background: rgba(123,47,255,0.1);
     border: 1px solid var(--border);
     color: var(--text); padding: 14px 32px;
     border-radius: 10px; text-decoration: none;
     font-weight: 600; font-size: 15px;
-    transition: all 0.2s;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
   }
-  .btn-secondary:hover { background: rgba(123,47,255,0.2); transform: translateY(-2px); }
+  .btn-secondary::after {
+    content: "";
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(123,47,255,0.2) 0%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    border-radius: 10px;
+  }
+  .btn-secondary:hover {
+    background: rgba(123,47,255,0.25);
+    border-color: rgba(123,47,255,0.6);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(123,47,255,0.2);
+  }
+  .btn-secondary:hover::after { opacity: 1; }
 
   /* ── VIDEO/SCREENSHOT BLOCK ── */
   .hero-media {
@@ -139,8 +202,12 @@
     border-radius: 16px; overflow: hidden;
     border: 1px solid var(--border);
     box-shadow: 0 0 80px rgba(123,47,255,0.25), 0 40px 80px rgba(0,0,0,0.6);
-    animation: fadeUp 0.6s 0.4s ease both;
+    animation: fadeUp 0.6s 0.4s ease both, mediaBorder 3s ease-in-out infinite;
     position: relative;
+  }
+  @keyframes mediaBorder {
+    0%, 100% { border-color: var(--border); box-shadow: 0 0 80px rgba(123,47,255,0.25), 0 40px 80px rgba(0,0,0,0.6); }
+    50% { border-color: rgba(123,47,255,0.5); box-shadow: 0 0 120px rgba(123,47,255,0.4), 0 40px 100px rgba(123,47,255,0.2); }
   }
   .hero-media video,
   .hero-media img { width: 100%; display: block; }
@@ -197,7 +264,7 @@
     background: var(--bg2);
     border: 1px solid var(--border);
     border-radius: 16px; padding: 28px;
-    transition: all 0.3s;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     position: relative; overflow: hidden;
   }
   .feature-card::before {
@@ -206,14 +273,33 @@
     background: linear-gradient(90deg, transparent, var(--accent), transparent);
     opacity: 0; transition: opacity 0.3s;
   }
-  .feature-card:hover { border-color: rgba(123,47,255,0.5); transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+  .feature-card::after {
+    content: "";
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 50% 0%, rgba(123,47,255,0.15) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .feature-card:hover {
+    border-color: rgba(123,47,255,0.5);
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 20px 60px rgba(123,47,255,0.2), inset 0 0 20px rgba(123,47,255,0.05);
+  }
   .feature-card:hover::before { opacity: 1; }
+  .feature-card:hover::after { opacity: 1; }
   .feature-icon {
     width: 48px; height: 48px;
     background: rgba(123,47,255,0.15);
     border-radius: 12px;
     display: flex; align-items: center; justify-content: center;
     font-size: 22px; margin-bottom: 18px;
+    transition: all 0.3s;
+    box-shadow: 0 0 20px rgba(123,47,255,0.2);
+  }
+  .feature-card:hover .feature-icon {
+    background: rgba(123,47,255,0.3);
+    box-shadow: 0 0 30px rgba(123,47,255,0.4);
+    transform: scale(1.1) rotate(5deg);
   }
   .feature-title { font-size: 17px; font-weight: 600; margin-bottom: 8px; }
   .feature-desc { color: var(--subtext); font-size: 14px; line-height: 1.6; }
@@ -276,11 +362,19 @@
   .pricing-card {
     background: var(--bg2); border: 1px solid var(--border);
     border-radius: 20px; padding: 36px; text-align: center;
-    position: relative; transition: all 0.3s;
+    position: relative; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .pricing-card::after {
+    content: "";
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 50% 0%, rgba(123,47,255,0.1) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    border-radius: 20px;
   }
   .pricing-card.featured {
     border-color: var(--accent);
-    box-shadow: 0 0 40px var(--glow);
+    box-shadow: 0 0 40px var(--glow), 0 0 60px rgba(123,47,255,0.2);
   }
   .pricing-card.featured::before {
     content: "Most Popular";
@@ -289,8 +383,16 @@
     padding: 4px 16px; border-radius: 100px;
     font-size: 12px; font-weight: 700;
   }
-  .pricing-card:hover:not(.featured) { border-color: rgba(123,47,255,0.4); transform: translateY(-4px); }
-  .pricing-card.featured:hover { transform: translateY(-4px); }
+  .pricing-card:hover:not(.featured) {
+    border-color: rgba(123,47,255,0.5);
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 60px rgba(123,47,255,0.15);
+  }
+  .pricing-card:hover::after { opacity: 1; }
+  .pricing-card.featured:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 0 60px var(--glow), 0 20px 80px rgba(123,47,255,0.25);
+  }
   .pricing-name { font-size: 14px; color: var(--subtext); font-weight: 500; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 2px; }
   .pricing-price {
     font-family: 'JetBrains Mono', monospace;
@@ -311,12 +413,37 @@
     display: block; width: 100%;
     padding: 14px; border-radius: 10px;
     text-decoration: none; font-weight: 700; font-size: 15px;
-    transition: all 0.2s; text-align: center;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); text-align: center;
+    position: relative; overflow: hidden;
   }
-  .btn-pricing.primary { background: var(--accent); color: #fff; box-shadow: 0 0 24px var(--glow); }
-  .btn-pricing.primary:hover { background: var(--accent2); }
-  .btn-pricing.secondary { background: rgba(123,47,255,0.1); border: 1px solid var(--border); color: var(--text); }
-  .btn-pricing.secondary:hover { background: rgba(123,47,255,0.2); }
+  .btn-pricing.primary {
+    background: var(--accent); color: #fff;
+    box-shadow: 0 0 24px var(--glow), inset 0 0 15px rgba(255,255,255,0.1);
+  }
+  .btn-pricing.primary::before {
+    content: "";
+    position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .btn-pricing.primary:hover {
+    background: var(--accent2);
+    box-shadow: 0 0 40px var(--glow), 0 5px 25px rgba(123,47,255,0.3);
+    transform: translateY(-2px);
+  }
+  .btn-pricing.primary:hover::before { opacity: 1; }
+  .btn-pricing.secondary {
+    background: rgba(123,47,255,0.1);
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+  .btn-pricing.secondary:hover {
+    background: rgba(123,47,255,0.2);
+    border-color: rgba(123,47,255,0.6);
+    box-shadow: 0 5px 20px rgba(123,47,255,0.15);
+    transform: translateY(-2px);
+  }
 
   /* ── FAQ ── */
   .faq { margin-top: 56px; display: flex; flex-direction: column; gap: 12px; }
@@ -327,10 +454,25 @@
   .faq-q {
     padding: 20px 24px; font-weight: 600; font-size: 15px;
     cursor: pointer; display: flex; justify-content: space-between; align-items: center;
-    user-select: none; transition: background 0.2s;
+    user-select: none; transition: all 0.3s;
+    position: relative;
   }
-  .faq-q:hover { background: rgba(123,47,255,0.05); }
-  .faq-q .arrow { color: var(--accent); transition: transform 0.3s; }
+  .faq-q::before {
+    content: "";
+    position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    background: var(--accent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .faq-q:hover {
+    background: rgba(123,47,255,0.08);
+  }
+  .faq-q:hover::before { opacity: 1; }
+  .faq-q .arrow {
+    color: var(--accent);
+    transition: transform 0.3s, text-shadow 0.3s;
+  }
+  .faq-q:hover .arrow { text-shadow: 0 0 10px var(--accent); }
   .faq-q.open .arrow { transform: rotate(90deg); }
   .faq-a {
     padding: 0 24px; max-height: 0; overflow: hidden;
@@ -346,12 +488,23 @@
     border-radius: 24px; padding: 72px 48px;
     text-align: center; position: relative; overflow: hidden;
     max-width: 1100px; margin-left: auto; margin-right: auto;
+    transition: all 0.3s;
   }
   .discord-cta::before {
     content: "";
     position: absolute; top: -50%; left: 50%; transform: translateX(-50%);
     width: 400px; height: 400px;
-    background: radial-gradient(circle, rgba(123,47,255,0.2) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(123,47,255,0.25) 0%, transparent 70%);
+    animation: discordGlow 4s ease-in-out infinite;
+    filter: blur(40px);
+  }
+  @keyframes discordGlow {
+    0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.8; }
+    50% { transform: translateX(-50%) scale(1.15); opacity: 1; }
+  }
+  .discord-cta:hover {
+    border-color: rgba(123,47,255,0.4);
+    box-shadow: 0 0 60px rgba(123,47,255,0.15);
   }
   .discord-cta h2 { margin-bottom: 12px; }
   .discord-cta p { color: var(--subtext); margin-bottom: 32px; font-size: 16px; }
@@ -360,9 +513,22 @@
     background: #5865F2; color: #fff;
     padding: 14px 32px; border-radius: 10px;
     text-decoration: none; font-weight: 700; font-size: 15px;
-    transition: all 0.2s;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative; overflow: hidden;
+    box-shadow: 0 0 20px rgba(88,101,242,0.3);
   }
-  .btn-discord:hover { background: #4752C4; transform: translateY(-2px); }
+  .btn-discord::before {
+    content: "";
+    position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+    background: #4752C4;
+    transition: left 0.3s ease;
+    z-index: -1;
+  }
+  .btn-discord:hover {
+    background: #4752C4;
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 0 40px rgba(88,101,242,0.5), 0 10px 30px rgba(88,101,242,0.3);
+  }
 
   /* ── FOOTER ── */
   footer {
@@ -381,8 +547,91 @@
   }
 
   /* scroll reveal */
-  .reveal { opacity: 0; transform: translateY(30px); transition: all 0.6s ease; }
+  .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); }
   .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* Enhanced animations */
+  @keyframes shimmer {
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+
+  @keyframes particleFloat {
+    0% { opacity: 0; transform: translateY(100px) translateX(0); }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(-100vh) translateX(100px); }
+  }
+
+  @keyframes shimmerEffect {
+    0% { opacity: 0; transform: translateX(-100%); }
+    50% { opacity: 1; }
+    100% { opacity: 0; transform: translateX(100%); }
+  }
+
+  @keyframes borderGlow {
+    0% { box-shadow: 0 0 5px rgba(123,47,255,0.3); }
+    50% { box-shadow: 0 0 30px rgba(123,47,255,0.8), inset 0 0 20px rgba(123,47,255,0.2); }
+    100% { box-shadow: 0 0 10px rgba(123,47,255,0.4); }
+  }
+
+  @keyframes underlineGlow {
+    0%, 100% { opacity: 0; width: 0; left: 50%; }
+    50% { opacity: 1; width: 100%; left: 0; }
+  }
+
+  /* Particle styles */
+  .particle {
+    position: fixed;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .particle::before {
+    content: "";
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--accent), 0 0 20px rgba(123,47,255,0.5);
+  }
+
+  /* Smooth scroll behavior */
+  html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+
+  /* Enhanced card effects */
+  .feature-card::after, .pricing-card::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent, rgba(123,47,255,0.1), transparent);
+    opacity: 0;
+    animation: shimmerEffect 3s infinite;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+
+  /* Heading underline glow */
+  h2::after {
+    content: "";
+    position: absolute;
+    bottom: -10px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0;
+    animation: underlineGlow 2s ease-in-out infinite;
+  }
 
   /* ── RESPONSIVE ── */
   @media (max-width: 768px) {
@@ -405,8 +654,8 @@
   </a>
   <div class="nav-links">
     <a href="#features">Features</a>
-    <a href="#how">How It Works</a>
-    <a href="#pricing">Pricing</a>
+
+
     <a href="#faq">FAQ</a>
   </div>
   <a href="https://github.com/Smokey2922/LGSC_SC/releases/download/v1.0/LGSC.zip" class="nav-cta">⬇ Download</a>
@@ -462,44 +711,13 @@
   </div>
 </section>
 
-<!-- HOW IT WORKS -->
-<section id="how">
 
-  <div class="steps reveal">
-    <div class="step">
-      <div class="step-num">01</div>
-      <div class="step-content">
-        <h3>Download & Verify</h3>
-        <p>Download the scanner, enter your license key. Verify your identity via Discord OTP — the whole process takes under 30 seconds.</p>
-      </div>
-    </div>
-    <div class="step">
-      <div class="step-num">02</div>
-      <div class="step-content">
-        <h3>Run the Scan</h3>
-        <p>Hit Scan. LGSC simultaneously checks Registry, BAM, Prefetch, MUICache, Run Keys, and Recent files — all in under 5 seconds.</p>
-      </div>
-    </div>
-    <div class="step">
-      <div class="step-num">03</div>
-      <div class="step-content">
-        <h3>Review Results</h3>
-        <p>Every suspicious file is flagged with source, timestamp, and existence status. Filter, search, and export the results as evidence.</p>
-      </div>
-    </div>
-
-  </div>
-</section>
 
 
 
 <!-- PRICING -->
 <section id="pricing">
-  <div class="reveal" style="text-align:center">
-    <p class="section-label">Pricing</p>
-    <h2>Simple,<br><span>transparent pricing</span></h2>
-    <p class="section-sub" style="margin:0 auto"></p>
-  </div>
+
   <div class="pricing-grid reveal">
 
     <div class="pricing-card featured">
@@ -542,15 +760,7 @@
         BAM and some registry keys require admin rights to modify and persist across reboots, making them much harder to clear. LGSC also cross-references multiple sources, so clearing one rarely clears all.
       </div>
     </div>
-    <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
-        How do I get a license after purchasing?
-        <span class="arrow">›</span>
-      </div>
-      <div class="faq-a">
-        After payment, join our Discord server and open a ticket. Your HWID gets added to the system within minutes, and you can activate immediately.
-      </div>
-    </div>
+
     <div class="faq-item">
       <div class="faq-q" onclick="toggleFaq(this)">
         Does it work on Windows 10?
@@ -568,7 +778,7 @@
 <div class="discord-cta reveal">
   <p class="section-label" style="text-align:center">Community</p>
   <h2>Join the Discord.<br><span>Get support.</span></h2>
-  <p>Ask questions and get support — all in one place.</p>
+  <p></p>
   <a href="https://discord.gg/84R9as5pAW" class="btn-discord">
     <svg width="22" height="16" viewBox="0 0 71 55" fill="white"><path d="M60.1 4.9A58.6 58.6 0 0 0 45.5.7a41 41 0 0 0-1.8 3.7 54.2 54.2 0 0 0-16.3 0A39.5 39.5 0 0 0 25.6.7 58.5 58.5 0 0 0 11 4.9C1.6 18.8-1 32.4.3 45.8a59 59 0 0 0 18 9.1 43.4 43.4 0 0 0 3.8-6.1 38.3 38.3 0 0 1-6-2.9l1.5-1.1a42.2 42.2 0 0 0 36 0l1.5 1.1a38.4 38.4 0 0 1-6 2.9 43.4 43.4 0 0 0 3.8 6.1 58.8 58.8 0 0 0 18-9C72.2 30.2 68.4 16.7 60.1 4.9ZM23.7 37.7c-3.5 0-6.4-3.2-6.4-7.2s2.8-7.2 6.4-7.2 6.5 3.2 6.4 7.2c0 4-2.8 7.2-6.4 7.2Zm23.6 0c-3.5 0-6.4-3.2-6.4-7.2s2.8-7.2 6.4-7.2 6.5 3.2 6.4 7.2c0 4-2.8 7.2-6.4 7.2Z"/></svg>
     Join Discord Server
@@ -577,7 +787,7 @@
 
 <!-- FOOTER -->
 <footer>
-  <div>© 2026 LGSC Scanner. All rights reserved.</div>
+  <div>© 2026 LGSC Scanner</div>
   <div style="display:flex;gap:24px">
     <a href="https://discord.gg/84R9as5pAW">Discord</a>
 
@@ -585,17 +795,350 @@
 </footer>
 
 <script>
-  // ── FAQ toggle ──
+  // Enhanced FAQ toggle with smooth animation
   function toggleFaq(el) {
-    el.classList.toggle('open');
-    el.nextElementSibling.classList.toggle('open');
+    const isOpen = el.classList.toggle('open');
+    const answer = el.nextElementSibling;
+    answer.classList.toggle('open');
+    if (isOpen) {
+      answer.style.maxHeight = answer.scrollHeight + 'px';
+    } else {
+      answer.style.maxHeight = '0';
+    }
   }
 
-  // ── Scroll reveal ──
+  // Enhanced Scroll reveal with stagger effect
   const observer = new IntersectionObserver((entries) => {
-    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    entries.forEach((e, index) => {
+      if (e.isIntersecting) {
+        setTimeout(() => {
+          e.target.classList.add('visible');
+        }, index * 50);
+      }
+    });
   }, { threshold: 0.1 });
+  
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // Mouse follow effect for hero section
+  const heroGlow = document.querySelector('.hero-glow');
+  if (heroGlow) {
+    document.addEventListener('mousemove', (e) => {
+      const x = (e.clientX / window.innerWidth) * 20 - 10;
+      const y = (e.clientY / window.innerHeight) * 20 - 10;
+      heroGlow.style.transform = `translate(calc(-50% + ${x}px), calc(-60% + ${y}px))`;
+    });
+  }
+
+  // Smooth scroll behavior for nav links
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      const href = this.getAttribute('href');
+      if (href !== '#') {
+        e.preventDefault();
+        const target = document.querySelector(href);
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    });
+  });
+
+  // Add parallax effect to background
+  window.addEventListener('scroll', () => {
+    const scrolled = window.pageYOffset;
+    const parallaxElements = document.querySelectorAll('[data-parallax]');
+    parallaxElements.forEach(el => {
+      const speed = el.getAttribute('data-parallax') || 0.5;
+      el.style.transform = `translateY(${scrolled * speed}px)`;
+    });
+  });
+
+  // Create floating particles
+  function createParticles() {
+    const particleCount = 25;
+    const container = document.body;
+    
+    for (let i = 0; i < particleCount; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'particle';
+      particle.style.left = Math.random() * 100 + '%';
+      particle.style.top = Math.random() * 100 + '%';
+      particle.style.animation = `particleFloat ${8 + Math.random() * 12}s linear infinite`;
+      particle.style.animationDelay = Math.random() * 5 + 's';
+      container.appendChild(particle);
+    }
+  }
+
+  // Initialize particles on page load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', createParticles);
+  } else {
+    createParticles();
+  }
+
+
+
+  // Add glow effect to elements on scroll
+  const glowElements = document.querySelectorAll('.feature-card, .pricing-card, .faq-item');
+  const glowObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.animation = 'borderGlow 0.6s ease-out';
+      }
+    });
+  }, { threshold: 0.5 });
+
+  glowElements.forEach(el => glowObserver.observe(el));
+
+  // Add click ripple effect to buttons
+  document.querySelectorAll('a[class*="btn"]').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      const rect = this.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height);
+      const x = e.clientX - rect.left - size / 2;
+      const y = e.clientY - rect.top - size / 2;
+      
+      const ripple = document.createElement('span');
+      ripple.style.position = 'absolute';
+      ripple.style.width = size + 'px';
+      ripple.style.height = size + 'px';
+      ripple.style.left = x + 'px';
+      ripple.style.top = y + 'px';
+      ripple.style.background = 'radial-gradient(circle, rgba(255,255,255,0.8) 0%, transparent 70%)';
+      ripple.style.borderRadius = '50%';
+      ripple.style.pointerEvents = 'none';
+      ripple.style.animation = 'rippleAnimation 0.6s ease-out';
+      ripple.style.position = 'absolute';
+      
+      this.style.position = 'relative';
+      this.style.overflow = 'hidden';
+      this.appendChild(ripple);
+      
+      setTimeout(() => ripple.remove(), 600);
+    });
+  });
+
+  // Add CSS for ripple animation
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes rippleAnimation {
+      to {
+        transform: scale(4);
+        opacity: 0;
+      }
+    }
+  `;
+  document.head.appendChild(style);
 </script>
+<!-- AI CHAT WIDGET -->
+<style>
+  .chat-bubble {
+    position: fixed; bottom: 24px; right: 24px; z-index: 999;
+    width: 52px; height: 52px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 24px var(--glow);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 22px; transition: all 0.3s;
+    animation: pulse 2.5s infinite;
+  }
+  .chat-bubble:hover { transform: scale(1.1); box-shadow: 0 0 40px var(--glow); }
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 24px var(--glow); }
+    50%      { box-shadow: 0 0 44px rgba(123,47,255,0.7); }
+  }
+  .chat-window {
+    position: fixed; bottom: 88px; right: 24px; z-index: 998;
+    width: 340px; height: 480px;
+    background: #0D0A1A;
+    border: 1px solid rgba(123,47,255,0.3);
+    border-radius: 20px;
+    box-shadow: 0 0 60px rgba(0,0,0,0.6), 0 0 30px var(--glow);
+    display: none; flex-direction: column; overflow: hidden;
+    animation: slideUp 0.3s ease;
+  }
+  .chat-window.open { display: flex; }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .chat-header {
+    background: linear-gradient(135deg, #1a0a3d, #0d0820);
+    padding: 16px 18px; display: flex; align-items: center; gap: 12px;
+    border-bottom: 1px solid rgba(123,47,255,0.2);
+  }
+  .chat-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--accent); display: flex; align-items: center;
+    justify-content: center; font-size: 16px; flex-shrink: 0;
+  }
+  .chat-header-info { flex: 1; }
+  .chat-header-name { font-size: 14px; font-weight: 700; color: var(--text); }
+  .chat-header-status { font-size: 11px; color: var(--green); display: flex; align-items: center; gap: 4px; }
+  .chat-header-status::before { content: "●"; font-size: 8px; }
+  .chat-close { cursor: pointer; color: var(--subtext); font-size: 18px; padding: 4px; }
+  .chat-close:hover { color: var(--text); }
+  .chat-messages {
+    flex: 1; overflow-y: auto; padding: 16px;
+    display: flex; flex-direction: column; gap: 12px;
+    scrollbar-width: thin; scrollbar-color: rgba(123,47,255,0.3) transparent;
+  }
+  .msg { max-width: 85%; animation: msgIn 0.3s ease; }
+  @keyframes msgIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .msg.bot { align-self: flex-start; }
+  .msg.user { align-self: flex-end; }
+  .msg-bubble {
+    padding: 10px 14px; border-radius: 14px;
+    font-size: 13px; line-height: 1.5;
+  }
+  .msg.bot  .msg-bubble { background: #1A1535; color: var(--text); border-bottom-left-radius: 4px; }
+  .msg.user .msg-bubble { background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
+  .msg-time { font-size: 10px; color: var(--subtext); margin-top: 4px; padding: 0 4px; }
+  .msg.user .msg-time { text-align: right; }
+
+  .chat-suggestions {
+    padding: 10px 14px; display: flex; flex-wrap: wrap; gap: 7px;
+    border-top: 1px solid rgba(123,47,255,0.1);
+    background: #080612;
+  }
+  .suggestion {
+    background: rgba(123,47,255,0.12);
+    border: 1px solid rgba(123,47,255,0.25);
+    border-radius: 20px; padding: 6px 12px;
+    font-size: 12px; color: var(--accent2);
+    cursor: pointer; transition: all 0.2s;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .suggestion:hover { background: rgba(123,47,255,0.25); transform: translateY(-1px); }
+
+  .chat-input-row {
+    padding: 12px 14px; display: flex; gap: 8px;
+    border-top: 1px solid rgba(123,47,255,0.15);
+    background: #080612;
+  }
+  .chat-input {
+    flex: 1; background: #1A1535; border: 1px solid rgba(123,47,255,0.2);
+    border-radius: 10px; padding: 8px 12px;
+    color: var(--text); font-size: 13px;
+    font-family: 'Space Grotesk', sans-serif;
+    outline: none;
+  }
+  .chat-input:focus { border-color: rgba(123,47,255,0.5); }
+  .chat-send {
+    background: var(--accent); border: none; border-radius: 10px;
+    padding: 8px 14px; color: #fff; cursor: pointer;
+    font-size: 15px; transition: all 0.2s;
+  }
+  .chat-send:hover { background: var(--accent2); }
+</style>
+
+<!-- Bubble -->
+<div class="chat-bubble" onclick="toggleChat()">💬</div>
+
+<!-- Window -->
+<div class="chat-window" id="chatWindow">
+  <div class="chat-header">
+    <div class="chat-avatar">⚡</div>
+    <div class="chat-header-info">
+      <div class="chat-header-name">LGSC Assistant</div>
+      <div class="chat-header-status">Online</div>
+    </div>
+    <div class="chat-close" onclick="toggleChat()">✕</div>
+  </div>
+
+  <div class="chat-messages" id="chatMessages">
+    <div class="msg bot">
+      <div class="msg-bubble">Hey! 👋 I'm the LGSC Assistant. Ask me anything about the scanner.</div>
+      <div class="msg-time">now</div>
+    </div>
+  </div>
+
+  <div class="chat-suggestions" id="chatSuggestions">
+    <span class="suggestion" onclick="askQuestion(this)">What does it scan?</span>
+    <span class="suggestion" onclick="askQuestion(this)">How do I get access?</span>
+    <span class="suggestion" onclick="askQuestion(this)">What's the price?</span>
+    <span class="suggestion" onclick="askQuestion(this)">Is it safe to use?</span>
+    <span class="suggestion" onclick="askQuestion(this)">Windows 11 support?</span>
+  </div>
+
+  <div class="chat-input-row">
+    <input class="chat-input" id="chatInput" placeholder="Ask something..." onkeydown="if(event.key==='Enter')sendMsg()">
+    <button class="chat-send" onclick="sendMsg()">➤</button>
+  </div>
+</div>
+
+<script>
+const QA = {
+  "how do i get access": "Join our Discord server and open a ticket. Your HWID will be added to the system within minutes, then you can activate. 💬",
+  "what's the price": "We have Pro ($10/month) and Lifetime ($35 one-time). Join Discord to purchase. No hidden fees. 💜",
+  "is it safe to use": "100% safe. LGSC only reads Windows registry and system data — it never modifies, deletes, or uploads anything without your consent. ✅",
+  "windows 11 support": "Yes! LGSC Scanner is fully compatible with Windows 10 and Windows 11 (64-bit). Admin rights required for full scan access. ✔️",
+};
+
+function getTime() {
+  return new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+}
+
+function addMsg(text, type) {
+  const msgs = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = `msg ${type}`;
+  div.innerHTML = `<div class="msg-bubble">${text}</div><div class="msg-time">${getTime()}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function getBotReply(input) {
+  const lower = input.toLowerCase().trim();
+
+  // שאלות בסיסיות
+  if (lower.match(/^(hi|hey|hello|yo|sup|wassup|what'?s up|whats up)$/)) 
+    return "Hey! 👋 What can I help you with?";
+  if (lower.match(/how are you|how r u|how are u|מה נשמע|מה קורה/))
+    return "Doing great, always ready to help! 😄 What do you want to know about LGSC?";
+  if (lower.match(/^(ok|okay|thanks|thank you|thx|ty|cool|nice|great|awesome)$/))
+    return "Anytime! 💜 Anything else you want to know?";
+  if (lower.match(/who are you|what are you|מי אתה/))
+    return "I'm the LGSC Assistant — here to answer your questions about the scanner. Ask me anything! ⚡";
+  if (lower.match(/good morning|good night|gm|gn/))
+    return "Hey! 👋 Hope you're having a great day. Need help with anything?";
+  if (lower.match(/bye|goodbye|cya|see you/))
+    return "See you! If you have more questions, I'm always here. 💜";
+
+  for (const [key, val] of Object.entries(QA)) {
+    if (lower.includes(key) || key.includes(lower)) return val;
+  }
+  // fallback keywords
+  if (lower.includes("price") || lower.includes("cost") || lower.includes("how much")) return QA["what's the price"];
+  if (lower.includes("safe") || lower.includes("virus") || lower.includes("trust")) return QA["is it safe to use"];
+  if (lower.includes("windows") || lower.includes("win11") || lower.includes("compatible")) return QA["windows 11 support"];
+  if (lower.includes("buy") || lower.includes("purchase") || lower.includes("access") || lower.includes("license")) return QA["how do i get access"];
+  return "I'm not sure about that — join our <a href='https://discord.gg/84R9as5pAW' style='color:var(--accent2)'>Discord</a> and ask there! 💬";
+}
+
+function askQuestion(el) {
+  const q = el.textContent;
+  addMsg(q, 'user');
+  el.remove();
+  setTimeout(() => addMsg(getBotReply(q), 'bot'), 600);
+}
+
+function sendMsg() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+  addMsg(text, 'user');
+  input.value = '';
+  setTimeout(() => addMsg(getBotReply(text), 'bot'), 600);
+}
+
+function toggleChat() {
+  const w = document.getElementById('chatWindow');
+  w.classList.toggle('open');
+}
+</script>
+
 </body>
 </html>
